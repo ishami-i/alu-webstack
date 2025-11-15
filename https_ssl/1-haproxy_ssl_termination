@@ -1,0 +1,34 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+    maxconn 2048
+
+    # Enable SSL
+    tune.ssl.default-dh-param 2048
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend https_in
+    bind *:443 ssl crt /etc/letsencrypt/live/www.ishami.tech/fullchain.pem crt /etc/letsencrypt/live/www.ishami.tech/privkey.pem
+    mode http
+    option forwardfor
+    default_backend webservers
+
+frontend http_in
+    bind *:80
+    redirect scheme https if !{ ssl_fc }
+
+
+backend webservers
+    mode http
+    balance roundrobin
+    server web01 107.20.123.50:80 check
+    server web02 13.218.205.224:80 check
