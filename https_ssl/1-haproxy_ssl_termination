@@ -3,8 +3,6 @@ global
     log /dev/log    local1 notice
     daemon
     maxconn 2048
-
-    # Enable SSL
     tune.ssl.default-dh-param 2048
 
 defaults
@@ -17,15 +15,16 @@ defaults
     timeout server  50000
 
 frontend https_in
-    bind *:443 ssl crt /etc/letsencrypt/live/www.ishami.tech/fullchain.pem crt /etc/letsencrypt/live/www.ishami.tech/privkey.pem
+    bind *:443 ssl crt /etc/ssl/private/haproxy-www.pem
     mode http
     option forwardfor
     default_backend webservers
 
 frontend http_in
     bind *:80
-    redirect scheme https if !{ ssl_fc }
-
+    mode http
+    option httplog
+    redirect scheme https code 301 if !{ ssl_fc }
 
 backend webservers
     mode http
